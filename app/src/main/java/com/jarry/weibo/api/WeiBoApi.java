@@ -8,6 +8,7 @@ import com.jarry.weibo.bean.FriendsTimeLine;
 import com.jarry.weibo.bean.MentionComment;
 import com.jarry.weibo.bean.PostComments;
 import com.jarry.weibo.bean.SearchBean;
+import com.jarry.weibo.bean.ShareBean;
 import com.jarry.weibo.bean.Status;
 import com.jarry.weibo.bean.User;
 
@@ -106,6 +107,9 @@ public interface WeiBoApi {
             @Part("pic\";filename=\"file") RequestBody requestBody);
 
     @FormUrlEncoded
-    @POST("http://api.t.sina.com.cn/statuses/update.json")
+    @POST("statuses/update.json")
     Observable<Status> sendWeiBoWithText(@FieldMap Map<String, Object> params);
+    @FormUrlEncoded
+    @POST("statuses/share.json")
+    Observable<ShareBean> shareWeiBo(@FieldMap Map<String, Object> params);
 }

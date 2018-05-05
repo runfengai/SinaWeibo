@@ -2,6 +2,7 @@ package com.jarry.weibo.widget.ninegridlayout;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,7 +64,10 @@ public class NineGridlayout extends ViewGroup {
         for (int i = 0; i < childrenCount; i++) {
             OneImage childrenView = (OneImage) getChildAt(i);
             Status.ThumbnailPic thumbnailPic = (Status.ThumbnailPic) listData.get(i);
-            childrenView.setImageUrl(thumbnailPic.getThumbnail_pic());
+            if (!TextUtils.isEmpty(thumbnailPic.localPic)) {
+                childrenView.setImageLocal(thumbnailPic.localPic);
+            } else
+                childrenView.setImageUrl(thumbnailPic.getThumbnail_pic());
             int[] position = findPosition(i);
             int left = (singleWidth + gap) * position[1];
             int top = (singleHeight + gap) * position[0];

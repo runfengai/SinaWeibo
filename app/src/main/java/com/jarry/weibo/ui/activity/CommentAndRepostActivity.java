@@ -29,11 +29,11 @@ import butterknife.OnClick;
 
 /**
  * Created by Jarry 2016/8/2.
- *
- *
+ * <p>
+ * <p>
  * 评论和转发界面
  */
-public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresenter> implements ICARView {
+public class CommentAndRepostActivity extends MVPBaseActivity<ICARView, CARPresenter> implements ICARView {
 
     private static final String WEIBO_STATUE = "status";
     private static final String COMMENT = "comment";
@@ -61,7 +61,6 @@ public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresen
     ViewPager vp_emotion_dashboard;
 
 
-
     @Override
     protected CARPresenter createPresenter() {
         return new CARPresenter(this);
@@ -80,11 +79,11 @@ public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresen
         initView();
     }
 
-    public static Intent newIntent(Context context,Status status,String tag,Comments comments) {
+    public static Intent newIntent(Context context, Status status, String tag, Comments comments) {
         Intent intent = new Intent(context, CommentAndRepostActivity.class);
-        intent.putExtra(CommentAndRepostActivity.WEIBO_STATUE,status);
-        intent.putExtra(CommentAndRepostActivity.COMMENT,comments);
-        intent.putExtra(CommentAndRepostActivity.TAG,tag);
+        intent.putExtra(CommentAndRepostActivity.WEIBO_STATUE, status);
+        intent.putExtra(CommentAndRepostActivity.COMMENT, comments);
+        intent.putExtra(CommentAndRepostActivity.TAG, tag);
         return intent;
     }
 
@@ -95,35 +94,35 @@ public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresen
         status = (Status) getIntent().getSerializableExtra(WEIBO_STATUE);
         weibo_id = status.getIdstr();
         tag = getIntent().getStringExtra(TAG);
-        if(tag.equals("回复微博")){
+        if (tag.equals("回复微博")) {
             cb_is_repost.setText("评论并转发");
-        }else if(tag.equals("转发微博")){
+        } else if (tag.equals("转发微博")) {
             cb_is_repost.setText("转发并评论");
-        }else if(tag.equals("回复评论")){
+        } else if (tag.equals("回复评论")) {
             comments = (Comments) getIntent().getSerializableExtra(COMMENT);
             comment_id = comments.getIdstr();
             cb_is_repost.setText("同时转发到微博");
         }
     }
 
-    private void initView(){
-        et_comment_repost.addTextChangedListener(StringUtil.textNumberListener(et_comment_repost,tv_weibo_number,this));
+    private void initView() {
+        et_comment_repost.addTextChangedListener(StringUtil.textNumberListener(et_comment_repost, tv_weibo_number, this));
         et_comment_repost.clearFocus();
-        new ViewUtil(this,vp_emotion_dashboard,et_comment_repost).initEmotion();
+        new ViewUtil(this, vp_emotion_dashboard, et_comment_repost).initEmotion();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.car_menu,menu);
+        getMenuInflater().inflate(R.menu.car_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if(item.getItemId() == R.id.menu_send){
+        if (item.getItemId() == R.id.menu_send) {
             commentAndRepost();
             return true;
-        }else {
+        } else {
             return super.onOptionsItemSelected(item);
         }
     }
@@ -136,14 +135,15 @@ public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresen
     @Override
     public void finishAndToast() {
         finish();
-        Toast.makeText(this, R.string.comment_succe,Toast.LENGTH_LONG).show();
+        Toast.makeText(this, R.string.comment_succe, Toast.LENGTH_LONG).show();
     }
 
-    @OnClick(R.id.weibo_emotion) void insertEmotion() {
+    @OnClick(R.id.weibo_emotion)
+    void insertEmotion() {
         //软键盘，显示或隐藏
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
-        if(ll_emotion_dashboard.getVisibility() == View.VISIBLE) {
+        if (ll_emotion_dashboard.getVisibility() == View.VISIBLE) {
             // 显示表情面板时点击,将按钮图片设为笑脸按钮,同时隐藏面板
             weibo_emotion.setImageResource(R.drawable.btn_insert_emotion);
             ll_emotion_dashboard.setVisibility(View.GONE);
@@ -155,51 +155,52 @@ public class CommentAndRepostActivity extends MVPBaseActivity<ICARView,CARPresen
         }
     }
 
-    @OnClick(R.id.weibo_topic) void insertTopic(){
+    @OnClick(R.id.weibo_topic)
+    void insertTopic() {
         int curPosition = et_comment_repost.getSelectionStart();
         StringBuilder sb = new StringBuilder(et_comment_repost.getText().toString());
-        sb.insert(curPosition,"##");
+        sb.insert(curPosition, "##");
         // 特殊文字处理,将表情等转换一下
         et_comment_repost.setText(sb);
         // 将光标设置到新增完表情的右侧
         et_comment_repost.setSelection(curPosition + 1);
     }
 
-    private void commentAndRepost(){
+    private void commentAndRepost() {
         String text = et_comment_repost.getText().toString();
-        if(text.equals("")){
-            Toast.makeText(this, R.string.not_null,Toast.LENGTH_LONG).show();
-        }else {
-            if(tag.equals("回复微博")) {
+        if (text.equals("")) {
+            Toast.makeText(this, R.string.not_null, Toast.LENGTH_LONG).show();
+        } else {
+            if (tag.equals("回复微博")) {
                 mPresenter.postComment(text, weibo_id);
                 if (cb_is_repost.isChecked()) {
-                    mPresenter.postRepost(getRepostText(text), weibo_id);
+                    mPresenter.postRepost(getRepostText(text), weibo_id, status);
                 }
-            }else if(tag.equals("转发微博")){
-                mPresenter.postRepost(getRepostText(text),weibo_id);
+            } else if (tag.equals("转发微博")) {
+                mPresenter.postRepost(getRepostText(text), weibo_id, status);
                 if (cb_is_repost.isChecked()) {
                     mPresenter.postComment(text, weibo_id);
                 }
-            }else if(tag.equals("回复评论")){
-                mPresenter.postCommentToReply(text,comment_id,weibo_id);
+            } else if (tag.equals("回复评论")) {
+                mPresenter.postCommentToReply(text, comment_id, weibo_id);
                 if (cb_is_repost.isChecked()) {
-                    mPresenter.postRepost(getCommentReplyText(text), weibo_id);
+                    mPresenter.postRepost(getCommentReplyText(text), weibo_id, status);
                 }
             }
         }
     }
 
-    private String getRepostText(String text){
-        if(status.getRetweeted_status()!=null) {
+    private String getRepostText(String text) {
+        if (status.getRetweeted_status() != null) {
             String repostText = text + "//@" + status.getUser().getScreen_name() + ":" + status.getText();
             return repostText;
-        }else {
+        } else {
             return text;
         }
     }
 
-    private String getCommentReplyText(String text){
-        String repostText = "回复"+"@"+comments.getUser().getScreen_name()+":"+text+"//"+"@"+comments.getUser().getScreen_name()+":"+comments.getText();
+    private String getCommentReplyText(String text) {
+        String repostText = "回复" + "@" + comments.getUser().getScreen_name() + ":" + text + "//" + "@" + comments.getUser().getScreen_name() + ":" + comments.getText();
         return repostText;
     }
 

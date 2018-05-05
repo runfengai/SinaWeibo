@@ -7,6 +7,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
 import com.jarry.weibo.R;
+import com.jarry.weibo.bean.Status;
 import com.jarry.weibo.ui.presenter.HomePresenter;
 import com.jarry.weibo.ui.activity.SendWeiBoActivity;
 import com.jarry.weibo.ui.base.MVPBaseFragment;
@@ -17,10 +18,13 @@ import com.jarry.weibo.util.RxEvents;
 import butterknife.Bind;
 import butterknife.OnClick;
 
+import static android.app.Activity.RESULT_OK;
+import static com.jarry.weibo.ui.adapter.WeiBoListAdapter.REQ_REPOST;
+
 /**
  * Created by Jarry 2018/5/2.
- *
- *
+ * <p>
+ * <p>
  * fragment of home weibo to display
  */
 public class HomeFragment extends MVPBaseFragment<IHomeView, HomePresenter> implements IHomeView {
@@ -53,12 +57,14 @@ public class HomeFragment extends MVPBaseFragment<IHomeView, HomePresenter> impl
         mPresenter.getWeiBoTimeLine();
         mPresenter.scrollRecycleView();
 
-        RxBus.getInstance().toObserverable().subscribe(event->{
-            if(event instanceof RxEvents.UpRefreshClick){
+        RxBus.getInstance().toObserverable().subscribe(event -> {
+            if (event instanceof RxEvents.UpRefreshClick) {
                 mRecyclerView.smoothScrollToPosition(0);
                 requestDataRefresh();
-            }else if(event instanceof RxEvents.WeiBoSetLike){
+            } else if (event instanceof RxEvents.WeiBoSetLike) {
                 RxEvents.WeiBoSetLike like = (RxEvents.WeiBoSetLike) event;
+            } else if (event instanceof RxEvents.AddedWeibo) {//新微博
+                mPresenter.showSendWeibo(((RxEvents.AddedWeibo) event).status);
             }
         });
     }
@@ -85,8 +91,28 @@ public class HomeFragment extends MVPBaseFragment<IHomeView, HomePresenter> impl
         return mLayoutManager;
     }
 
+    public static final int SEND_REQ_CODE = 100;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && data != null) {
+            switch (requestCode) {
+                case SEND_REQ_CODE:
+                    Status status = (Status) data.getSerializableExtra("weibo");
+                    mPresenter.showSendWeibo(status);
+                    break;
+                case REQ_REPOST:
+                    Status statusR = (Status) data.getSerializableExtra("weibo");
+                    mPresenter.showSendWeibo(statusR);
+                    break;
+            }
+        }
+    }
+
     //发微博
-    @OnClick(R.id.send_weibo) void sendWeibo(){
-        startActivity(new Intent(getActivity(), SendWeiBoActivity.class));
+    @OnClick(R.id.send_weibo)
+    void sendWeibo() {
+        startActivityForResult(new Intent(getActivity(), SendWeiBoActivity.class), SEND_REQ_CODE);
     }
 }

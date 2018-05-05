@@ -1,5 +1,6 @@
 package com.jarry.weibo.widget.ninegridlayout;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -15,9 +16,10 @@ import com.jarry.weibo.util.ScreenUtil;
 
 /**
  * Created by Jarry 2018/5/2.
- *
+ * <p>
  * 单图显示 imageView
  */
+@SuppressLint("AppCompatCustomView")
 public class OneImage extends ImageView implements View.OnClickListener {
 
     private String url;
@@ -41,7 +43,10 @@ public class OneImage extends ImageView implements View.OnClickListener {
     @Override
     public void onAttachedToWindow() {
         isAttachedToWindow = true;
-        setImageUrl(url);
+        if (TextUtils.isEmpty(localPath))
+            setImageUrl(url);
+        else
+            setImageLocal(localPath);
         super.onAttachedToWindow();
     }
 
@@ -54,20 +59,33 @@ public class OneImage extends ImageView implements View.OnClickListener {
     public void setImageUrl(String url) {
 
         int width = ScreenUtil.instance(getContext()).getScreenWidth();
-        int height = width/3;
+        int height = width / 3;
 
         if (!TextUtils.isEmpty(url)) {
             this.url = url;
             if (isAttachedToWindow) {
-                Glide.with(getContext().getApplicationContext()).load(url).override((width/2), height).placeholder(new ColorDrawable(Color.parseColor("#f5f5f5"))).into(this);
+                Glide.with(getContext().getApplicationContext()).load(url).override((width / 2), height).placeholder(new ColorDrawable(Color.parseColor("#f5f5f5"))).into(this);
             }
         }
     }
 
+    private String localPath;
+
+    public void setImageLocal(String path) {
+        localPath = path;
+        int width = ScreenUtil.instance(getContext()).getScreenWidth();
+        int height = width / 3;
+
+        if (!TextUtils.isEmpty(path)) {
+            if (isAttachedToWindow) {
+                Glide.with(getContext().getApplicationContext()).load(path).thumbnail(0.1f).override((width / 2), height).placeholder(new ColorDrawable(Color.parseColor("#f5f5f5"))).into(this);
+            }
+        }
+    }
 
     //打开PicActivity
     private void startPictureActivity(OneImage image) {
-        Intent intent = PicActivity.newIntent(getContext(), image.url,null,0);
+        Intent intent = PicActivity.newIntent(getContext(), image.url, null, 0);
         //异常处理
         getContext().startActivity(intent);
     }

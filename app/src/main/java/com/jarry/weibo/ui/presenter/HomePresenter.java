@@ -45,6 +45,15 @@ public class HomePresenter extends BasePresenter<IHomeView> {
         this.context = ctx;
     }
 
+    public void showSendWeibo(Status status) {
+        list.add(0, status);
+        if (adapter == null) {
+            adapter = new WeiBoListAdapter(context, list, "home_fg");
+            recyclerView.setAdapter(adapter);
+        }
+        adapter.notifyDataSetChanged();
+    }
+
     public void getWeiBoTimeLine() {
         homeView = getHomeView();
         if (homeView != null) {

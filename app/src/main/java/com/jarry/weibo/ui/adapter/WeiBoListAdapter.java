@@ -1,11 +1,14 @@
 package com.jarry.weibo.ui.adapter;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.LinearLayoutCompat;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.Gravity;
 import android.view.View;
@@ -47,7 +50,7 @@ import butterknife.ButterKnife;
  * Adapter of WeiBo list
  */
 public class WeiBoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-
+    public static final int REQ_REPOST = 123;
     private Context context;
     private List list;
     private String tag;
@@ -251,6 +254,7 @@ public class WeiBoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
             iv_one_image.setLayoutParams(paramsIv);
         }
 
+        @SuppressLint("RestrictedApi")
         public void bindItem(Context context, Status status) {
             if (status.getText().contains("抱歉，此微博已被删除")) {
                 layout_weibo_zhuanfa.setVisibility(View.GONE);
@@ -313,7 +317,7 @@ public class WeiBoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                             RxBus.getInstance().send(new RxEvents.WeiBoSetLike(isLike[0], status.getIdstr()));
                             break;
                         case R.id.pop_repost:
-                            context.startActivity(CommentAndRepostActivity.newIntent(context, status, "转发微博", null));
+                            ((Activity) context).startActivityForResult(CommentAndRepostActivity.newIntent(context, status, "转发微博", null), REQ_REPOST);
                             break;
                         case R.id.pop_reply:
                             context.startActivity(CommentAndRepostActivity.newIntent(context, status, "回复微博", null));
@@ -347,7 +351,10 @@ public class WeiBoListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
                 if (pic_urls.size() == 1) {
                     nineGridlayout.setVisibility(View.GONE);
                     oneImage.setVisibility(View.VISIBLE);
-                    oneImage.setImageUrl(pic_urls.get(0).getSmallImg());
+                    if (!TextUtils.isEmpty(pic_urls.get(0).localPic))
+                        oneImage.setImageLocal(pic_urls.get(0).localPic);
+                    else
+                        oneImage.setImageUrl(pic_urls.get(0).getSmallImg());
                 } else {
                     nineGridlayout.setVisibility(View.VISIBLE);
                     oneImage.setVisibility(View.GONE);

@@ -23,6 +23,8 @@ import com.jarry.weibo.ui.base.MVPBaseActivity;
 import com.jarry.weibo.ui.fragment.TabFragment;
 import com.jarry.weibo.ui.view.IWeiBoDetailView;
 import com.jarry.weibo.util.DataUtil;
+import com.jarry.weibo.util.RxBus;
+import com.jarry.weibo.util.RxEvents;
 import com.jarry.weibo.util.StringUtil;
 import com.jarry.weibo.widget.ClickCircleImageView;
 import com.jarry.weibo.widget.ninegridlayout.NineGridlayout;
@@ -120,11 +122,12 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView, WeiBo
     }
 
     DetailStatus detailStatus;
+
     //详情
     public void setDetailStatus(DetailStatus detailStatus) {
         this.detailStatus = detailStatus;
         isFavourited = detailStatus.isFavorited();
-        Log.e("===","isFavourited="+isFavourited);
+        Log.e("===", "isFavourited=" + isFavourited);
     }
 
     private void getDetail() {
@@ -299,6 +302,8 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView, WeiBo
                     initTabView();
                     break;
                 case REQ_REPOST:
+                    Status statusR = (Status) data.getSerializableExtra("weibo");
+                    RxBus.getInstance().send(new RxEvents.AddedWeibo(statusR));
                     finish();
                     break;
             }

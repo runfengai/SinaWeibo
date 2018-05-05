@@ -124,6 +124,9 @@ public class MainActivity extends MVPBaseActivity<IMainView, MainPresenter> impl
         } else if (item.getItemId() == R.id.menu_notification) {
             startActivity(new Intent(this, MessageActivity.class));
             return true;
+        } else if (item.getItemId() == R.id.menu_search) {
+            startActivity(new Intent(this, SearchTopicActivity.class));
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }

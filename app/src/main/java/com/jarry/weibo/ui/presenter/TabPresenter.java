@@ -16,17 +16,17 @@ import com.jarry.weibo.ui.adapter.WeiBoListAdapter;
 import com.jarry.weibo.ui.view.ITabView;
 import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.util.PrefUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 /**
  * Created by Jarry 2016/8/2.
- *
- *
  */
 public class TabPresenter extends BasePresenter<ITabView> {
 
@@ -47,9 +47,9 @@ public class TabPresenter extends BasePresenter<ITabView> {
         this.context = context;
     }
 
-    public void getComments(){
+    public void getComments() {
         tabView = getTabView();
-        if(tabView!=null){
+        if (tabView != null) {
             weibo_id = tabView.getWeiBoId();
             recyclerView = tabView.getRecyclerView();
             layoutManager = tabView.getLayoutManager();
@@ -57,14 +57,14 @@ public class TabPresenter extends BasePresenter<ITabView> {
 
         Oauth2AccessToken token = readToken(context);
         String count = "10";//just like it
-        System.out.println("--taken--"+token.getToken());
+        System.out.println("--taken--" + token.getToken());
         if (token.isSessionValid()) {
-            weiBoApi.getCommentsById(getRequestMap(token.getToken(),count,weibo_id))
+            weiBoApi.getCommentsById(getRequestMap(token.getToken(), count, weibo_id))
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe(commentsTimeLine -> {
-                        disPlayWeiBoList(commentsTimeLine,context,tabView,recyclerView);
-                    },this::loadError);
+                        disPlayWeiBoList(commentsTimeLine, context, tabView, recyclerView);
+                    }, this::loadError);
         }
     }
 
@@ -78,12 +78,13 @@ public class TabPresenter extends BasePresenter<ITabView> {
 
     private void loadError(Throwable throwable) {
         throwable.printStackTrace();
-        Toast.makeText(context,R.string.load_error,Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, R.string.load_error, Toast.LENGTH_SHORT).show();
     }
 
     String max_id;
+
     // get request params
-    private Map<String, Object> getRequestMap(String token, String count,String id) {
+    private Map<String, Object> getRequestMap(String token, String count, String id) {
         max_id = PrefUtils.getString(context, "comment_max_id", "0");
         Map<String, Object> map = new HashMap<>();
         map.put("access_token", token);
@@ -101,7 +102,7 @@ public class TabPresenter extends BasePresenter<ITabView> {
             Log.d(TAG, commentsTimeLine.toString());
         }
         if (isLoadMore) {
-            if(max_id.equals("0")){
+            if (max_id.equals("0")) {
                 adapter.updateLoadStatus(adapter.LOAD_NONE);
                 return;
             }
@@ -109,7 +110,7 @@ public class TabPresenter extends BasePresenter<ITabView> {
             adapter.notifyDataSetChanged();
         } else {
             list = getCommentsData(commentsTimeLine);
-            adapter = new WeiBoListAdapter(context, list,"tab_fg");
+            adapter = new WeiBoListAdapter(context, list, "tab_fg");
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         }
@@ -129,6 +130,7 @@ public class TabPresenter extends BasePresenter<ITabView> {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
+                if (adapter == null) return;
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     lastVisibleItem = layoutManager
                             .findLastVisibleItemPosition();
@@ -137,7 +139,7 @@ public class TabPresenter extends BasePresenter<ITabView> {
                         adapter.updateLoadStatus(adapter.LOAD_PULL_TO);
                         isLoadMore = true;
                         adapter.updateLoadStatus(adapter.LOAD_MORE);
-                        new Handler().postDelayed(() -> getComments(),1500);
+                        new Handler().postDelayed(() -> getComments(), 1500);
                     }
 
                 }

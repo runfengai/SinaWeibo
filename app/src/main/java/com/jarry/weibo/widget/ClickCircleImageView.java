@@ -50,7 +50,7 @@ public class ClickCircleImageView extends CircleImageView implements View.OnClic
     public void setUserImage(User user) {
         this.user = user;
         if(user !=null){
-            icon_url = user.getAvatar_large();
+            icon_url = user.getProfile_image_url();
             if (!TextUtils.isEmpty(icon_url)) {
                 if (isAttachedToWindow) {
                     // 防止出现 You cannot start a load for a destroyed activity

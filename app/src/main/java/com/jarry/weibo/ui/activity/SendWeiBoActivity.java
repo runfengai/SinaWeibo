@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -116,21 +117,37 @@ public class SendWeiBoActivity extends MVPBaseActivity<ISendView, SendPresenter>
         // 将光标设置到新增完表情的右侧
         et_weibo.setSelection(curPosition + 1);
     }
-
+    //适配6.0，权限申请
+    private static final int PERMISSION_READ_DATA = 222;
     /**
      * 判断当前权限是否允许,弹出提示框来选择
      */
-    @TargetApi(Build.VERSION_CODES.M)
+//    @TargetApi(Build.VERSION_CODES.M)
     private void PermissionToVerify() {
         // 需要验证的权限
-        int hasWriteContactsPermission =checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
-            // 弹窗询问 ，让用户自己判断
-            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                    REQUEST_CODE_ASK_PERMISSIONS);
-            return;
+//        int hasWriteContactsPermission =checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+//        if (hasWriteContactsPermission != PackageManager.PERMISSION_GRANTED) {
+//            // 弹窗询问 ，让用户自己判断
+//            requestPermissions(new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+//                    REQUEST_CODE_ASK_PERMISSIONS);
+//            return;
+//        }
+//        mPresenter.photoPick();
+
+        //先检查权限，如果没有权限，就关闭
+        if (Build.VERSION.SDK_INT >= 23) {//权限检查
+            int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+            if (checkCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
+                this.requestPermissions( new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_READ_DATA);
+                return;
+            } else {
+                //获取图片
+                mPresenter.photoPick();
+            }
+        } else {
+            //获取图片
+            mPresenter.photoPick();
         }
-        mPresenter.photoPick();
 
     }
 
