@@ -7,7 +7,7 @@ import android.widget.Toast;
 
 import com.jarry.weibo.R;
 import com.jarry.weibo.ui.view.ILoginView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.sina.weibo.sdk.auth.WbAuthListener;
 import com.sina.weibo.sdk.auth.WbConnectErrorMessage;

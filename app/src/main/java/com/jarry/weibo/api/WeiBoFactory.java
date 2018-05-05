@@ -41,6 +41,7 @@ public class WeiBoFactory {
     //retrofit2.0
     static class weiBoApiRetrofit {
         public WeiBoApi WeiBoApiService;
+//        public static final String BASE_URL = "http://api.t.sina.com.cn/";
         public static final String BASE_URL = "https://api.weibo.com/2/";
 
         public WeiBoApi getAPiService() {

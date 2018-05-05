@@ -6,12 +6,15 @@ import android.os.Bundle;
 import android.support.design.widget.TabLayout;
 import android.support.v4.view.ViewPager;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.jarry.weibo.R;
+import com.jarry.weibo.bean.DetailStatus;
 import com.jarry.weibo.bean.Status;
 import com.jarry.weibo.ui.base.MVPBaseFragment;
 import com.jarry.weibo.ui.presenter.WeiBoDetailPresenter;
@@ -37,11 +40,11 @@ import butterknife.Bind;
 
 /**
  * Created by Jarry 2016/8/1.
- *
- *
+ * <p>
+ * <p>
  * WeiBo Detail
  */
-public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoDetailPresenter> implements IWeiBoDetailView, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
+public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView, WeiBoDetailPresenter> implements IWeiBoDetailView, RapidFloatingActionContentLabelList.OnRapidFloatingActionContentLabelListListener {
 
     public static final String WEIBO_STATUS = "weibo_status";
     public Status mStatus;
@@ -91,6 +94,12 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
     }
 
     @Override
+    public void finishAndToast() {
+        finish();
+        Toast.makeText(this, R.string.comment_succe, Toast.LENGTH_LONG).show();
+    }
+
+    @Override
     protected int provideContentViewId() {
         return R.layout.activity_weibo_detail;
     }
@@ -107,11 +116,24 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
         initViewWithStatus(mStatus);
         initTabView();
         initFab();
+        getDetail();
+    }
+
+    DetailStatus detailStatus;
+    //详情
+    public void setDetailStatus(DetailStatus detailStatus) {
+        this.detailStatus = detailStatus;
+        isFavourited = detailStatus.isFavorited();
+        Log.e("===","isFavourited="+isFavourited);
+    }
+
+    private void getDetail() {
+        mPresenter.getDetail(weibo_id);
     }
 
     public static Intent newIntent(Context context, Status status) {
         Intent intent = new Intent(context, WeiBoDetailActivity.class);
-        intent.putExtra(WeiBoDetailActivity.WEIBO_STATUS,status);
+        intent.putExtra(WeiBoDetailActivity.WEIBO_STATUS, status);
         return intent;
     }
 
@@ -121,34 +143,35 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
     private void parseIntent() {
         mStatus = (Status) getIntent().getSerializableExtra(WEIBO_STATUS);
         weibo_id = mStatus.getIdstr();
-        System.out.println("---detail--id-"+weibo_id);
+        System.out.println("---detail--id-" + weibo_id);
     }
 
     //初始化Tab滑动
-    public void initTabView(){
+    public void initTabView() {
 
         fragmentList = new ArrayList<>();
-        fragmentList.add(TabFragment.newInstance(weibo_id,"zhuanfa"));
-        fragmentList.add(TabFragment.newInstance(weibo_id,"comments"));
-        fragmentList.add(TabFragment.newInstance(weibo_id,"comments"));
+        fragmentList.add(TabFragment.newInstance(weibo_id, "zhuanfa"));
+        fragmentList.add(TabFragment.newInstance(weibo_id, "comments"));
+//        fragmentList.add(TabFragment.newInstance(weibo_id, "comments"));
 
-        TabLayout tabLayout= (TabLayout) findViewById(R.id.tabLayout);
-        ViewPager mViewPager= (ViewPager) findViewById(R.id.detail_viewPager);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabLayout);
+        ViewPager mViewPager = (ViewPager) findViewById(R.id.detail_viewPager);
 
-        mViewPager.setAdapter(new ViewPagerFgAdapter(getSupportFragmentManager(),fragmentList,"WeiBo_Detail"));//给ViewPager设置适配器
+        mViewPager.setAdapter(new ViewPagerFgAdapter(getSupportFragmentManager(), fragmentList, "WeiBo_Detail"));//给ViewPager设置适配器
         tabLayout.setupWithViewPager(mViewPager);//将TabLayout和ViewPager关联起来
 
     }
 
     /**
      * 初始化详情微博界面的数据
+     *
      * @param status 数据
      */
-    private void initViewWithStatus(Status status){
+    private void initViewWithStatus(Status status) {
         tv_weibo_userName.setText(status.getUser().getScreen_name());
         tv_weibo_create_time.setText(DataUtil.showTime(status.getCreated_at()));
         tv_weibo_text.setMovementMethod(LinkMovementMethod.getInstance());
-        tv_weibo_text.setText(StringUtil.getWeiBoText(this,status.getText()));
+        tv_weibo_text.setText(StringUtil.getWeiBoText(this, status.getText()));
         //头像
         Glide.clear(iv_weibo_icon);
         iv_weibo_icon.setUserImage(status.getUser());
@@ -164,11 +187,11 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
             // zhuanfa userName
             if (status.getRetweeted_status().getUser() != null && !status.getRetweeted_status().getUser().equals("")) {
                 tv_weibo_zhuanfa_userName.setMovementMethod(LinkMovementMethod.getInstance());
-                tv_weibo_zhuanfa_userName.setText(StringUtil.getWeiBoText(this,"@" + status.getRetweeted_status().getUser().getScreen_name()));
+                tv_weibo_zhuanfa_userName.setText(StringUtil.getWeiBoText(this, "@" + status.getRetweeted_status().getUser().getScreen_name()));
             }
             // zhuanfa text
             tv_weibo_zhuanfa_text.setMovementMethod(LinkMovementMethod.getInstance());
-            tv_weibo_zhuanfa_text.setText(StringUtil.getWeiBoText(this,status.getRetweeted_status().getText()));
+            tv_weibo_zhuanfa_text.setText(StringUtil.getWeiBoText(this, status.getRetweeted_status().getText()));
             // img
             setWeiBoImg(status.getRetweeted_status().getPic_urls(), iv_z_one_image, iv_z_nine_grid_layout);
         }
@@ -192,6 +215,14 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
         items.add(new RFACLabelItem<Integer>()
                 .setLabel("评论")
                 .setResId(R.drawable.comment_16px)
+                .setIconNormalColor(0xffd84315)
+                .setIconPressedColor(0xffbf360c)
+                .setLabelSizeSp(14)
+                .setWrapper(0)
+        );
+        items.add(new RFACLabelItem<Integer>()
+                .setLabel("收藏")
+                .setResId(R.drawable.ic_collections_black_24dp)
                 .setIconNormalColor(0xffd84315)
                 .setIconPressedColor(0xffbf360c)
                 .setLabelSizeSp(14)
@@ -233,15 +264,44 @@ public class WeiBoDetailActivity extends MVPBaseActivity<IWeiBoDetailView,WeiBoD
 
     @Override
     public void onRFACItemLabelClick(int i, RFACLabelItem rfacLabelItem) {
-
+        intentTo(i);
+        rfabHelper.toggleContent();
     }
 
     @Override
     public void onRFACItemIconClick(int i, RFACLabelItem rfacLabelItem) {
-        if(i==1){
-            startActivity(CommentAndRepostActivity.newIntent(WeiBoDetailActivity.this,mStatus,"回复微博",null));
-        }else {
-            startActivity(CommentAndRepostActivity.newIntent(WeiBoDetailActivity.this,mStatus,"转发微博",null));
+        intentTo(i);
+        rfabHelper.toggleContent();
+    }
+
+    public static final int REQ_COMM = 100;
+    public static final int REQ_REPOST = 101;
+    public boolean isFavourited = false;
+
+    private void intentTo(int i) {
+        if (i == 1) {
+            startActivityForResult(CommentAndRepostActivity.newIntent(WeiBoDetailActivity.this, mStatus, "回复微博", null), REQ_COMM);
+        } else if (i == 0) {
+            startActivityForResult(CommentAndRepostActivity.newIntent(WeiBoDetailActivity.this, mStatus, "转发微博", null), REQ_REPOST);
+        } else if (i == 2) {
+            //收藏
+            isFavourited = !isFavourited;
+            mPresenter.postCollect(weibo_id, isFavourited);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQ_COMM:
+                    initTabView();
+                    break;
+                case REQ_REPOST:
+                    finish();
+                    break;
+            }
         }
     }
 }

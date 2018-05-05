@@ -11,7 +11,7 @@ import com.jarry.weibo.R;
 import com.jarry.weibo.ui.presenter.SplashPresenter;
 import com.jarry.weibo.ui.base.MVPBaseActivity;
 import com.jarry.weibo.ui.view.ISplashView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.widget.splash.SplashView;
 
 import java.util.Random;

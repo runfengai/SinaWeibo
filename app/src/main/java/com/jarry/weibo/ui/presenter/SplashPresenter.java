@@ -7,7 +7,7 @@ import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.jarry.weibo.MyApp;
 import com.jarry.weibo.bean.User;
 import com.jarry.weibo.ui.view.ISplashView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.util.StateUtils;
 import java.util.HashMap;
 import java.util.Map;

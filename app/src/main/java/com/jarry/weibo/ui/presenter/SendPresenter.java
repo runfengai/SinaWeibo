@@ -4,11 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.widget.Toast;
 
+import com.jarry.weibo.info.Constants;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.jarry.weibo.R;
 import com.jarry.weibo.ui.adapter.WeiBoPhotoAdapter;
 import com.jarry.weibo.ui.view.ISendView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -124,7 +125,7 @@ public class SendPresenter extends BasePresenter<ISendView> {
 
     private Map<String,Object> getSendMap(String token,String status){
         Map<String,Object> map = new HashMap<>();
-        map.put("access_token",token);
+        map.put("source", Constants.APP_KEY);
         map.put("status",status);
         return map;
     }

@@ -2,10 +2,12 @@ package com.jarry.weibo.ui.presenter;
 
 import android.content.Context;
 import android.widget.Toast;
+
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 import com.jarry.weibo.R;
 import com.jarry.weibo.ui.view.ICARView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+//import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import java.util.HashMap;
 import java.util.Map;
 import rx.android.schedulers.AndroidSchedulers;

@@ -14,7 +14,7 @@ import com.jarry.weibo.bean.Comments;
 import com.jarry.weibo.bean.CommentsTimeLine;
 import com.jarry.weibo.ui.adapter.WeiBoListAdapter;
 import com.jarry.weibo.ui.view.ITabView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.util.PrefUtils;
 import java.util.ArrayList;
 import java.util.HashMap;

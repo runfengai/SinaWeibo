@@ -10,11 +10,12 @@ import android.widget.Toast;
 
 import com.jarry.weibo.BuildConfig;
 import com.jarry.weibo.R;
-import com.jarry.weibo.bean.FriendsTimeLine;
+import com.jarry.weibo.bean.SearchBean;
+import com.jarry.weibo.bean.SearchBean;
 import com.jarry.weibo.bean.Status;
 import com.jarry.weibo.ui.adapter.TopicListAdapter;
 import com.jarry.weibo.ui.view.ISearchTopicView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.util.PrefUtils;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 
@@ -46,27 +47,41 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     private boolean isLoadMore = false; // 是否加载过更多
     String key = "";
 
+    int page = 1;
+    final static int count = 10;
+
     public SearchTopicPresenter(Context ctx) {
         this.context = ctx;
     }
 
+    /**
+     * 刷新
+     *
+     * @param key
+     */
     public void getWeiBoTimeLine(String key) {
         this.key = key;
+        page = 1;
         homeView = getHomeView();
         if (homeView != null) {
             recyclerView = homeView.getRecyclerView();
             layoutManager = homeView.getLayoutManager();
 
             Oauth2AccessToken token = readToken(context);
-            String count = "10";//just like it
+
             if (token.isSessionValid()) {
                 String tokenStr = token.getToken();
-                weiBoApi.getFriendsTimeLine(getRequestMap(tokenStr, count))
+                weiBoApi.searchTopic(getRequestMap(tokenStr))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(friendsTimeLine -> {
-                            disPlayWeiBoList(friendsTimeLine, context, homeView, recyclerView);
-                        }, this::loadError);
+                        .subscribe(searchBean ->
+                                {
+                                    disPlayWeiBoList(searchBean, context, homeView, recyclerView);
+                                }
+                                , this::loadError);
+//                        .subscribe(searchBean -> {
+//                            disPlayWeiBoList(searchBean, context, homeView, recyclerView);
+//                        }, this::loadError);
             }
         }
     }
@@ -105,14 +120,13 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     String max_id;
 
     // get request params
-    private Map<String, Object> getRequestMap(String token, String count) {
-        max_id = PrefUtils.getString(context, "max_id", "0");
+    private Map<String, Object> getRequestMap(String token) {
         Map<String, Object> map = new HashMap<>();
         map.put("access_token", token);
+        map.put("q", key);
         map.put("count", count);
-        if (isLoadMore) {
-            map.put("max_id", Long.valueOf(max_id));
-        }
+        map.put("page", page);
+
         return map;
     }
 
@@ -125,7 +139,7 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     }
 
     // refresh data
-    private void disPlayWeiBoList(FriendsTimeLine friendsTimeLine, Context context, ISearchTopicView homeView, RecyclerView recyclerView) {
+    private void disPlayWeiBoList(SearchBean friendsTimeLine, Context context, ISearchTopicView homeView, RecyclerView recyclerView) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, friendsTimeLine.toString());
         }
@@ -143,12 +157,10 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
             adapter.notifyDataSetChanged();
         }
         homeView.setDataRefresh(false);
-        // save max_id
-        PrefUtils.setString(context, "max_id", friendsTimeLine.getMax_id());
     }
 
-    private List<Status> getStatusData(FriendsTimeLine friendsTimeLine) {
-        return friendsTimeLine.getStatuses();
+    private List<Status> getStatusData(SearchBean searchBean) {
+        return searchBean.getStatuses();
     }
 
     /**

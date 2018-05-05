@@ -12,7 +12,7 @@ import com.jarry.weibo.bean.FriendShips;
 import com.jarry.weibo.bean.User;
 import com.jarry.weibo.ui.adapter.WeiBoListAdapter;
 import com.jarry.weibo.ui.view.IFriendFgView;
-import com.jarry.weibo.util.AccessTokenKeeper;
+import com.sina.weibo.sdk.auth.AccessTokenKeeper;
 import com.jarry.weibo.util.PrefUtils;
 
 import java.util.ArrayList;

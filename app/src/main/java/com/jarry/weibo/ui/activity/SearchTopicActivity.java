@@ -34,7 +34,7 @@ public class SearchTopicActivity extends MVPBaseActivity<ISearchTopicView, Searc
         Intent intent = getIntent();
         if (intent != null) {
             key = intent.getStringExtra(SearchManager.QUERY);
-            if (!TextUtils.isEmpty(key)) {
+            if (!TextUtils.isEmpty(key)) {//此处刷新关键字
                 Log.e(TAG, "KEY=" + key);
                 requestDataRefresh();
             }
