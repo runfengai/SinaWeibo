@@ -25,8 +25,6 @@ import rx.schedulers.Schedulers;
 
 /**
  * Created by Jarry 2018/5/2.
- *
- *
  */
 public class UserPresenter extends BasePresenter<IUserView> {
 
@@ -43,19 +41,19 @@ public class UserPresenter extends BasePresenter<IUserView> {
         this.context = context;
     }
 
-    public void getUserWeiBoTimeLine(String uid){
+    public void getUserWeiBoTimeLine(String uid) {
         userView = getView();
-        if(userView != null){
+        if (userView != null) {
             recyclerView = userView.getRecyclerView();
             layoutManager = userView.getLayoutManager();
             Oauth2AccessToken token = readToken(context);
             if (token.isSessionValid()) {
-                weiBoApi.getUserWeiBoTimeLine(getRequestMap(token.getToken(),uid))
+                weiBoApi.getUserWeiBoTimeLine(getRequestMap(token.getToken(), uid))
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(friendsTimeLine -> {
-                            disPlayWeiBoList(friendsTimeLine,context,userView,recyclerView);
-                        },this::loadError);
+                            disPlayWeiBoList(friendsTimeLine, context, userView, recyclerView);
+                        }, this::loadError);
             }
         }
     }
@@ -69,6 +67,7 @@ public class UserPresenter extends BasePresenter<IUserView> {
     }
 
     String max_id;
+
     // get request params
     private Map<String, Object> getRequestMap(String token, String uid) {
         max_id = PrefUtils.getString(context, "user_max_id", "0");
@@ -85,29 +84,29 @@ public class UserPresenter extends BasePresenter<IUserView> {
     private void disPlayWeiBoList(FriendsTimeLine friendsTimeLine, Context context, IUserView userView, RecyclerView recyclerView) {
         List<Status> statuses = friendsTimeLine.getStatuses();
         if (isLoadMore) {
-            if(max_id.equals("0")){
+            if (max_id.equals("0")) {
                 adapter.updateLoadStatus(adapter.LOAD_NONE);
                 return;
             }
-            if (statuses.size() == 0 ){
+            if (statuses.size() == 0) {
                 adapter.updateLoadStatus(adapter.LOAD_NONE);
                 userView.setDataRefresh(false);
                 return;
-            }else if(statuses.size()==1){
+            } else if (statuses.size() == 1) {
                 list.addAll(statuses);
-            } else{
-                list.addAll(statuses.subList(1,statuses.size()-1));
+            } else {
+                list.addAll(statuses.subList(1, statuses.size() - 1));
             }
             adapter.notifyDataSetChanged();
         } else {
             list = friendsTimeLine.getStatuses();
-            adapter = new WeiBoListAdapter(context, list,"home_fg");
+            adapter = new WeiBoListAdapter(context, list, "home_fg");
             recyclerView.setAdapter(adapter);
             adapter.notifyDataSetChanged();
         }
         userView.setDataRefresh(false);
         // save max_id
-        PrefUtils.setString(context, "user_max_id", statuses.get(statuses.size()-1).getIdstr());
+        PrefUtils.setString(context, "user_max_id", statuses.get(statuses.size() - 1).getIdstr());
     }
 
     /**
@@ -117,6 +116,7 @@ public class UserPresenter extends BasePresenter<IUserView> {
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                if (adapter == null) return;
                 super.onScrollStateChanged(recyclerView, newState);
                 if (newState == RecyclerView.SCROLL_STATE_IDLE) {
                     lastVisibleItem = layoutManager
@@ -133,12 +133,12 @@ public class UserPresenter extends BasePresenter<IUserView> {
 
             @Override
             public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                if (adapter == null) return;
                 super.onScrolled(recyclerView, dx, dy);
                 lastVisibleItem = layoutManager.findLastVisibleItemPosition();
             }
         });
     }
-
 
 
     private Oauth2AccessToken readToken(Context context) {
