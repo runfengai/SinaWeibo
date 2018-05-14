@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -37,6 +36,9 @@ public class SearchTopicActivity extends MVPBaseActivity<ISearchTopicView, Searc
             if (!TextUtils.isEmpty(key)) {//此处刷新关键字
                 Log.e(TAG, "KEY=" + key);
                 requestDataRefresh();
+            } else {
+                key = "";
+                requestDataRefresh();
             }
 
         }
@@ -47,12 +49,11 @@ public class SearchTopicActivity extends MVPBaseActivity<ISearchTopicView, Searc
         return new SearchTopicPresenter(this);
     }
 
+
     protected void initView() {
-        setTitle("搜索话题");
+        setTitle("搜索");
         mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
-        setDataRefresh(false);
-        mPresenter.scrollRecycleView();
     }
 
     @Override
@@ -60,6 +61,12 @@ public class SearchTopicActivity extends MVPBaseActivity<ISearchTopicView, Searc
         super.requestDataRefresh();
         setDataRefresh(true);
         mPresenter.getWeiBoTimeLine(key);
+        mPresenter.scrollRecycleView();
+    }
+
+    @Override
+    public Boolean isSetRefresh() {
+        return true;
     }
 
     @Override
@@ -85,6 +92,7 @@ public class SearchTopicActivity extends MVPBaseActivity<ISearchTopicView, Searc
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        if (!TextUtils.isEmpty(key)) return true;
         getMenuInflater().inflate(R.menu.search_menu, menu);
         SearchManager searchManager =
                 (SearchManager) getSystemService(Context.SEARCH_SERVICE);

@@ -5,20 +5,23 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
+import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.jarry.weibo.BuildConfig;
+import com.google.gson.Gson;
 import com.jarry.weibo.R;
-import com.jarry.weibo.bean.SearchBean;
+import com.jarry.weibo.bean.FriendsTimeLine;
 import com.jarry.weibo.bean.SearchBean;
 import com.jarry.weibo.bean.Status;
 import com.jarry.weibo.ui.adapter.TopicListAdapter;
 import com.jarry.weibo.ui.view.ISearchTopicView;
 import com.sina.weibo.sdk.auth.AccessTokenKeeper;
-import com.jarry.weibo.util.PrefUtils;
 import com.sina.weibo.sdk.auth.Oauth2AccessToken;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,10 +45,13 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     private RecyclerView recyclerView;
     private TopicListAdapter adapter;
     private List<Status> list = new ArrayList<>();
+    private List<Status> localList = new ArrayList<>();
+    private List<Status> searchedList = new ArrayList<>();
     private LinearLayoutManager layoutManager;
     private int lastVisibleItem;
     private boolean isLoadMore = false; // 是否加载过更多
     String key = "";
+    FriendsTimeLine friendsTimeLine;
 
     int page = 1;
     final static int count = 10;
@@ -68,22 +74,84 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
             layoutManager = homeView.getLayoutManager();
 
             Oauth2AccessToken token = readToken(context);
-
-            if (token.isSessionValid()) {
-                String tokenStr = token.getToken();
-                weiBoApi.searchTopic(getRequestMap(tokenStr))
-                        .subscribeOn(Schedulers.io())
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe(searchBean ->
-                                {
-                                    disPlayWeiBoList(searchBean, context, homeView, recyclerView);
-                                }
-                                , this::loadError);
-//                        .subscribe(searchBean -> {
-//                            disPlayWeiBoList(searchBean, context, homeView, recyclerView);
-//                        }, this::loadError);
+            List<Status> showList = null;
+            getFromLocal();
+            if (TextUtils.isEmpty(key)) {
+                showList = localList;
+            } else {
+                getFromLocalByKey(key);
+                showList = searchedList;
             }
+            isLoadMore = false;
+            disPlayWeiBoList(isLoadMore, showList, context, homeView, recyclerView);
+//            if (token.isSessionValid()) {
+//                String tokenStr = token.getToken();
+//                weiBoApi.searchTopic(getRequestMap(tokenStr))
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(searchBean ->
+//                                {
+//                                    disPlayWeiBoList(searchBean, context, homeView, recyclerView);
+//                                }
+//                                , this::loadError);
+//            }
         }
+    }
+
+    /**
+     * 刷新
+     */
+    public void getMoreWeiBoTimeLine() {
+        homeView = getHomeView();
+        if (homeView != null) {
+            recyclerView = homeView.getRecyclerView();
+            layoutManager = homeView.getLayoutManager();
+            List<Status> more = new ArrayList<>();
+            disPlayWeiBoList(true, more, context, homeView, recyclerView);
+//            if (token.isSessionValid()) {
+//                String tokenStr = token.getToken();
+//                weiBoApi.searchTopic(getRequestMap(tokenStr))
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(searchBean ->
+//                                {
+//                                    disPlayWeiBoList(searchBean, context, homeView, recyclerView);
+//                                }
+//                                , this::loadError);
+//            }
+        }
+    }
+
+    /**
+     * 本地搜索
+     */
+    private List<Status> getFromLocal() {
+        if (localList != null && localList.size() > 0)
+            return localList;
+        try {
+            InputStream inputStream = context.getAssets().open("search.json");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            friendsTimeLine = new Gson().fromJson(bufferedReader, FriendsTimeLine.class);
+            return localList = friendsTimeLine.getStatuses();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * 搜索
+     *
+     * @param key
+     */
+    private void getFromLocalByKey(String key) {
+        searchedList.clear();
+        localList = getFromLocal();
+        for (Status status : localList) {
+            if (status.getText().contains(key) || (status.getRetweeted_status() != null && status.getRetweeted_status().getText().contains(key)))
+                searchedList.add(status);
+        }
+
     }
 
     // 点赞POST请求
@@ -139,22 +207,24 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     }
 
     // refresh data
-    private void disPlayWeiBoList(SearchBean friendsTimeLine, Context context, ISearchTopicView homeView, RecyclerView recyclerView) {
-        if (BuildConfig.DEBUG) {
-            Log.d(TAG, friendsTimeLine.toString());
-        }
+    private void disPlayWeiBoList(boolean isLoadMore, List<Status> target, Context context, ISearchTopicView homeView, RecyclerView recyclerView) {
         if (isLoadMore) {
-            if (max_id.equals("0")) {
+            if (target == null || target.size() == 0) {
                 adapter.updateLoadStatus(adapter.LOAD_NONE);
-                return;
+            } else {
+                list.addAll(target);
+                adapter.notifyDataSetChanged();
             }
-            list.addAll(getStatusData(friendsTimeLine));
-            adapter.notifyDataSetChanged();
         } else {
-            list = getStatusData(friendsTimeLine);
-            adapter = new TopicListAdapter(context, list, "home_fg");
-            recyclerView.setAdapter(adapter);
+            list = target;
+            if (recyclerView.getAdapter() == null) {
+                adapter = new TopicListAdapter(context, list, "home_fg");
+                recyclerView.setAdapter(adapter);
+            }
             adapter.notifyDataSetChanged();
+            if (list == null || list.size() == 0) {
+                adapter.updateLoadStatus(adapter.LOAD_NONE);
+            }
         }
         homeView.setDataRefresh(false);
     }
@@ -166,6 +236,7 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
     /**
      * recyclerView Scroll listener , maybe in here is wrong ?
      */
+
     public void scrollRecycleView() {
         if (recyclerView == null && getHomeView() != null)
             recyclerView = getHomeView().getRecyclerView();
@@ -182,7 +253,7 @@ public class SearchTopicPresenter extends BasePresenter<ISearchTopicView> {
                         adapter.updateLoadStatus(adapter.LOAD_PULL_TO);
                         isLoadMore = true;
                         adapter.updateLoadStatus(adapter.LOAD_MORE);
-                        new Handler().postDelayed(() -> getWeiBoTimeLine(key), 1000);
+                        new Handler().postDelayed(() -> getMoreWeiBoTimeLine(), 1000);
                     }
                 }
             }
